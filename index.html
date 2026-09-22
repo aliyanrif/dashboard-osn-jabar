@@ -1,27 +1,189 @@
-const osnData = [
-  // --- DATA TAHUN 2025 (SUDAH ADA) ---
-  {
-    "Tahun": "2025",
-    "Provinsi": "Prov. Jawa Barat",
-    "Kab/Kota": "Kab. Bandung",
-    "Cabang": "IPA",
-    "Sekolah": "SDN CANGKRING 03",
-    "NPSN": "20207984",
-    "Nama": "GITA RIANTI NOVSA",
-    "JK": "P",
-    "Kelas": "5"
-  },
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Multi-Tahun Finalis OSN SD Jawa Barat</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1 { color: #1a365d; margin-bottom: 5px; }
+        p.subtitle { color: #4a5568; margin-top: 0; margin-bottom: 25px; }
+        .filter-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-item label {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #2d3748;
+        }
+        .filter-item select {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #fff;
+            outline: none;
+        }
+        .table-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        table.dataTable thead th {
+            background-color: #2b6cb0;
+            color: #ffffff;
+            padding: 10px;
+        }
+        .btn-reset {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-reset:hover { background-color: #c53030; }
+    </style>
+</head>
+<body>
 
-  // --- TAMBAHKAN DATA TAHUN 2024 DI SINI ---
-  {
-    "Tahun": "2024",
-    "Provinsi": "Prov. Jawa Barat",
-    "Kab/Kota": "Kota Bandung",
-    "Cabang": "Matematika",
-    "Sekolah": "SD ISLAM AL AZHAR 30",
-    "NPSN": "20253348",
-    "Nama": "NAMA PESERTA 2024",
-    "JK": "L",
-    "Kelas": "5"
-  }
-];
+    <h1>🏆 Dashboard Finalis OSN SD Jawa Barat</h1>
+    <p class="subtitle">Mendukung Multi-Tahun dengan Slicer: Tahun, Provinsi, Kab/Kota, Cabang, Sekolah</p>
+
+    <!-- CARD SLICERS -->
+    <div class="filter-card">
+        <h3>🔍 Slicer / Filter Data</h3>
+        <div class="filter-grid">
+            <div class="filter-item">
+                <label for="slicerTahun">📅 Tahun</label>
+                <select id="slicerTahun"><option value="">Semua Tahun</option></select>
+            </div>
+            <div class="filter-item">
+                <label for="slicerProvinsi">🗺️ Provinsi</label>
+                <select id="slicerProvinsi"><option value="">Semua Provinsi</option></select>
+            </div>
+            <div class="filter-item">
+                <label for="slicerKabKota">🏛️ Kab / Kota</label>
+                <select id="slicerKabKota"><option value="">Semua Kab/Kota</option></select>
+            </div>
+            <div class="filter-item">
+                <label for="slicerCabang">🧪 Cabang Lomba</label>
+                <select id="slicerCabang"><option value="">Semua Cabang</option></select>
+            </div>
+            <div class="filter-item">
+                <label for="slicerSekolah">🏫 Sekolah</label>
+                <select id="slicerSekolah"><option value="">Semua Sekolah</option></select>
+            </div>
+        </div>
+        <button class="btn-reset" onclick="resetFilters()">🔄 Reset Semua Filter</button>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="table-card">
+        <table id="osnTable" class="display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Tahun</th>
+                    <th>Provinsi</th>
+                    <th>Kab / Kota</th>
+                    <th>Cabang</th>
+                    <th>Sekolah</th>
+                    <th>NPSN</th>
+                    <th>Nama Finalis</th>
+                    <th>JK</th>
+                    <th>Kelas</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        // Array Data Utama
+        const osnData = [
+            // --- DATA TAHUN 2025 (SUDAH ADA) ---
+            { "Tahun": "2025", "Provinsi": "Prov. Jawa Barat", "Kab/Kota": "Kab. Bandung", "Cabang": "IPA", "Sekolah": "SDN CANGKRING 03", "NPSN": "20207984", "Nama": "GITA RIANTI NOVSA", "JK": "P", "Kelas": "5" },
+            { "Tahun": "2025", "Provinsi": "Prov. Jawa Barat", "Kab/Kota": "Kab. Bandung", "Cabang": "IPA", "Sekolah": "SD AL-FATIH", "NPSN": "69988819", "Nama": "RAKAI SAMBARA AMURWA BHUMI", "JK": "L", "Kelas": "5" },
+            
+            // --- TAMBAHKAN DATA TAHUN 2024 DI SINI ---
+            { "Tahun": "2024", "Provinsi": "Prov. Jawa Barat", "Kab/Kota": "Kota Bandung", "Cabang": "Matematika", "Sekolah": "SD ISLAM AL AZHAR 30", "NPSN": "20253348", "Nama": "NAMA PESERTA CONTOH 2024", "JK": "L", "Kelas": "5" }
+            
+            // Tambahkan data lainnya dengan format yang sama...
+        ];
+
+        $(document).ready(function() {
+            const table = $('#osnTable').DataTable({
+                data: osnData,
+                columns: [
+                    { data: 'Tahun' },
+                    { data: 'Provinsi' },
+                    { data: 'Kab/Kota' },
+                    { data: 'Cabang' },
+                    { data: 'Sekolah' },
+                    { data: 'NPSN' },
+                    { data: 'Nama' },
+                    { data: 'JK' },
+                    { data: 'Kelas' }
+                ],
+                pageLength: 15,
+                scrollX: true
+            });
+
+            // Isi Dropdown Slicer Dinamis
+            function populateSlicer(selectId, columnIndex) {
+                const select = $(selectId);
+                const uniqueValues = table.column(columnIndex).data().unique().sort();
+                
+                uniqueValues.each(function(d) {
+                    if(d) select.append('<option value="' + d + '">' + d + '</option>');
+                });
+
+                select.on('change', function() {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    table.column(columnIndex).search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+            }
+
+            populateSlicer('#slicerTahun', 0);
+            populateSlicer('#slicerProvinsi', 1);
+            populateSlicer('#slicerKabKota', 2);
+            populateSlicer('#slicerCabang', 3);
+            populateSlicer('#slicerSekolah', 4);
+        });
+
+        function resetFilters() {
+            $('select').val('');
+            const table = $('#osnTable').DataTable();
+            table.columns().search('').draw();
+        }
+    </script>
+</body>
+</html>
